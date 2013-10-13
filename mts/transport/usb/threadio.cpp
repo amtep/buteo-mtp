@@ -312,6 +312,7 @@ void BulkReaderThread::execute()
 
         emit dataReady();
     }
+    MTP_LOG_INFO("BulkReaderThread finished");
 }
 
 // Called by the main thread to request more data to process.
@@ -436,6 +437,7 @@ void BulkWriterThread::execute()
 
     m_result = m_dataLen == 0;
     m_result_ready.storeRelease(1);
+    MTP_LOG_INFO("BulkWriterThread finished");
 }
 
 bool BulkWriterThread::resultReady()
@@ -522,6 +524,8 @@ void InterruptWriterThread::execute()
 
         free(pair.first);
     }
+
+    MTP_LOG_INFO("InterruptWriterThread finished");
 }
 
 void InterruptWriterThread::reset()
