@@ -752,6 +752,8 @@ MTPResponseCode FSStoragePlugin::addToStorage( const QString &path,
     {
         item->m_handle = handle ? handle : requestNewObjectHandle();
     }
+    MTP_LOG_INFO("assigning handle" << QString("0x%1").arg(item->m_handle, 0, 16) << "storage" << QString("0x%1").arg(item->m_objectInfo->mtpStorageId, 0, 16) << "name" << item->m_objectInfo->mtpFileName);
+
 
     MTPResponseCode result;
     // Create file or directory
@@ -1142,6 +1144,7 @@ MTPResponseCode FSStoragePlugin::getObjectHandles( const MTPObjFormatCode& forma
                         continue;
                     }
                     objectHandles.append( i.key() );
+                    MTP_LOG_INFO("listing handle" << QString("0x%1").arg(i.key(), 0, 16));
                 }
             }
             else
@@ -1156,6 +1159,7 @@ MTPResponseCode FSStoragePlugin::getObjectHandles( const MTPObjFormatCode& forma
                     if( i.value()->m_objectInfo && formatCode == i.value()->m_objectInfo->mtpObjectFormat )
                     {
                         objectHandles.append( i.key() );
+                        MTP_LOG_INFO("listing handle" << QString("0x%1").arg(i.key(), 0, 16));
                     }
                 }
             }
@@ -1172,6 +1176,7 @@ MTPResponseCode FSStoragePlugin::getObjectHandles( const MTPObjFormatCode& forma
                         ( MTP_OBF_FORMAT_Undefined != formatCode && storageItem->m_objectInfo && formatCode == storageItem->m_objectInfo->mtpObjectFormat ) )
                     {
                         objectHandles.append( storageItem->m_handle );
+                        MTP_LOG_INFO("listing handle" << QString("0x%1").arg(storageItem->m_handle, 0, 16));
                     }
                     storageItem = storageItem->m_nextSibling;
                 }
@@ -1205,6 +1210,7 @@ MTPResponseCode FSStoragePlugin::getObjectHandles( const MTPObjFormatCode& forma
                          formatCode == storageItem->m_objectInfo->mtpObjectFormat ) )
                    {
                        objectHandles.append( storageItem->m_handle );
+                       MTP_LOG_INFO("listing handle" << QString("0x%1").arg(storageItem->m_handle, 0, 16));
                    }
                    storageItem = storageItem->m_nextSibling;
                }
