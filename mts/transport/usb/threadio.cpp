@@ -245,6 +245,7 @@ void BulkReaderThread::resetData()
 int BulkReaderThread::_getOffset_locked()
 {
     // See the class definition for the story of how m_buffer is handled.
+    MTP_LOG_INFO("Looking for read buffer:" << m_dataStart << m_dataSize1 << m_dataSize2);
     if (READER_BUFFER_SIZE - (m_dataStart + m_dataSize1) >= MAX_DATA_IN_SIZE)
         return m_dataStart + m_dataSize1;
     if (m_dataStart - m_dataSize2 >= MAX_DATA_IN_SIZE)
@@ -259,6 +260,8 @@ bool BulkReaderThread::_markNewData(int offset, int size)
     // See the class definition for the story of how m_buffer is handled.
     // If nobody messed up then 'offset' should be pointing to the
     // end of one of the buffer pieces.
+
+    MTP_LOG_INFO("Adding read data at offset" << offset << "size" << size << m_dataStart << m_dataSize1 << m_dataSize2);
 
     if (offset == m_dataStart + m_dataSize1)
         m_dataSize1 += size;
@@ -277,9 +280,11 @@ void BulkReaderThread::execute()
         int offset;
         m_bufferLock.lock();
         offset = _getOffset_locked();
+        MTP_LOG_INFO("BulkReaderThread offset" << offset);
         while (!m_shouldExit && offset < 0) {
             m_wait.wait(&m_bufferLock);
             offset = _getOffset_locked();
+            MTP_LOG_INFO("(loop) BulkReaderThread offset" << offset);
         }
         m_bufferLock.unlock();
         if (m_shouldExit)
@@ -316,10 +321,12 @@ void BulkReaderThread::getData(char **bufferp, int *size)
 {
     QMutexLocker locker(&m_bufferLock);
 
+    MTP_LOG_INFO("getData" << m_dataStart << m_dataSize1 << m_dataSize2);
     if (m_dataSize1 == 0 && m_dataSize2 > 0) {
         // The primary data area has been consumed and the reader has
         // already started filling the secondary data area, which means
         // it's safe to switch over.
+        MTP_LOG_INFO("getData switching");
         m_dataStart = 0;
         m_dataSize1 = m_dataSize2;
         m_dataSize2 = 0;
@@ -339,9 +346,11 @@ void BulkReaderThread::getData(char **bufferp, int *size)
 void BulkReaderThread::releaseData(int size)
 {
     QMutexLocker locker(&m_bufferLock);
+    MTP_LOG_INFO("releaseData" << size << m_dataStart << m_dataSize1 << m_dataSize2);
     m_dataStart += size;
     m_dataSize1 -= size;
     if (m_dataSize1 == 0 && m_dataSize2 > 0) {
+        MTP_LOG_INFO("releaseData switching");
         // The primary data area has been consumed and the reader has
         // already started filling the secondary data area, which means
         // it's safe to switch over.

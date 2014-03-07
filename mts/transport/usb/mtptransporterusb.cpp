@@ -295,7 +295,7 @@ void MTPTransporterUSB::processReceivedData()
                 }
             }
             isFirstPacket = true;
-            //MTP_LOG_INFO("start container m_containerReadLen=" << m_containerReadLen << "dataLen=" << dataLen);
+            MTP_LOG_INFO("start container m_containerReadLen=" << m_containerReadLen << "dataLen=" << dataLen);
         }
 
         chunkLen = ((quint32) dataLen < m_containerReadLen) ? dataLen : m_containerReadLen;
