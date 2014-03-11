@@ -278,6 +278,7 @@ void BulkReaderThread::execute()
         m_bufferLock.lock();
         offset = _getOffset_locked();
         while (!m_shouldExit && offset < 0) {
+            MTP_LOG_WARNING("BulkReaderThread waiting");
             m_wait.wait(&m_bufferLock);
             offset = _getOffset_locked();
         }
