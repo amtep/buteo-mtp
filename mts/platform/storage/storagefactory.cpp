@@ -120,6 +120,8 @@ StorageFactory::StorageFactory(): m_storageId(0),
             {
                 // Add this storage to all storages list.
                 m_allStorages[storageId + i] = storages[i];
+                connect(storages[i], &StoragePlugin::storagePluginReady,
+                    &StorageFactory::onStoragePluginReady);
 
                 PluginHandlesInfo_ pluginHandlesInfo;
                 pluginHandlesInfo.storagePluginPtr = storages[i];
@@ -227,6 +229,13 @@ bool StorageFactory::enumerateStorages( QVector<quint32>& failedStorageIds )
     }
 
     return result;
+}
+
+void onStoragePluginReady(quint32 storageId)
+{
+    m_readyStorages.add(storageId);
+    if (m_readyStorages.size() == m_allStorages.size())
+        emit storageReady();
 }
 
 /*******************************************************
@@ -364,7 +373,7 @@ MTPResponseCode StorageFactory::checkHandle( const ObjHandle &handle ) const
 }
 
 /*******************************************************
- * MTPResponseCode StorageFactory::storageType
+ * MTPResponseCode StorageFactory::storageInfo
  ******************************************************/
 MTPResponseCode StorageFactory::storageInfo( const quint32& storageId, MTPStorageInfo &info )
 {

@@ -242,6 +242,9 @@ signals:
     /// \param txCancelled [out] If set to true, this indicates that the current MTP tx got cancelled.
     void checkTransportEvents( bool &txCancelled );
 
+    /// This signal is emitted when the plugin is done with enumeration.
+    void storagePluginReady(quint32 storageId);
+
 public Q_SLOTS:
     /// This slot gets called when storagefactory needs to know the value of the largest
     /// object handle a plug-in used in the previous MTP session.

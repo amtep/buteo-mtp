@@ -131,6 +131,26 @@ bool FSStoragePlugin::enumerateStorage()
         dir.mkdir( "Playlists" );
     }
 
+    QThread workerThread = new QThread(this);
+    connect(workerThread, &QThread::started, this, &FSStoragePlugin::enumerateStorage_worker);
+    // This looks odd but is ok. The finished() signal is sent from the
+    // workerThread's thread, but the thread affinity of the workerThread
+    // object itself is to our thread so the deleteLater is processed normally.
+    connect(workerThread, &QThread::finished, workerThread, &QObject::deleteLater);
+    workerThread.start();
+
+    return result;
+}
+
+// This will run in a separate worker thread.
+// No locks! It's the caller's responsibility to not call the method's
+// plugins until the worker is done (signalled with storagePluginReady)
+// The purpose of all this is to be able to do this slow operation
+// without blocking any MTP requests (until a request really needs
+// the results). Specifically, OS/X hosts became unhappy if
+// the GetStorageIDs request took too long.
+void FSStoragePlugin::enumerateStorage_worker()
+{
     // Now read all existing and new playlists from the device (tracker)
     m_tracker->getPlaylists(m_existingPlaylists.playlistPaths, m_existingPlaylists.playlistEntries, true);
     m_tracker->getPlaylists(m_newPlaylists.playlistNames, m_newPlaylists.playlistEntries, false);
@@ -149,7 +169,7 @@ bool FSStoragePlugin::enumerateStorage()
     // Create playlist folders and sync .pla files with real playlists.
     assignPlaylistReferences();
 
-    return result;
+    emit storagePluginReady();
 }
 
 /************************************************************

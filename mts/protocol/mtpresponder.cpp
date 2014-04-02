@@ -86,6 +86,7 @@ MTPResponder* MTPResponder::instance()
 }
 
 MTPResponder::MTPResponder(): m_storageServer(0),
+    m_storageReady(false);
     m_transporter(0),
     m_devInfoProvider(new DeviceInfoProvider),
     m_propertyPod(PropertyPod::instance(m_devInfoProvider, m_extensionManager)),
@@ -434,6 +435,15 @@ void MTPResponder::commandHandler()
     // preset the response code - to be changed if the handler of the operation
     // detects an error in the operation phase
     m_transactionSequence->mtpResp = MTP_RESP_OK;
+
+    if (!m_storageReady) {
+        if (needsStorageReady(reqContainer->code())) {
+            MTP_LOG_INFO("Will wait for storageReady");
+            return; // onStorageReady will call us again later
+        } else {
+            MTP_LOG_INFO("Storage not yet ready but operation is safe, continuing");
+        }
+    }
 
     if(m_opCodeTable.contains(reqContainer->code()))
     {
@@ -2911,6 +2921,31 @@ void MTPResponder::dispatchEvent(MTPEventCode event, const QVector<quint32> &par
 
     if(!sendContainer(container)) {
         MTP_LOG_CRITICAL("Couldn't dispatch event" << event);
+    }
+}
+
+void onStorageReady(void)
+{
+    m_storageReady = true;
+    // XXX when should this be called?
+    commandHandler();
+}
+
+bool MTPResponder::needsStorageReady(MTPOperationCode code)
+{
+    switch (code) {
+    case MTP_OP_GetDeviceInfo:
+    case MTP_OP_OpenSession:
+    case MTP_OP_CloseSession:
+    case MTP_OP_GetStorageIDs:
+    case MTP_OP_GetStorageInfo:
+    case MTP_OP_GetDevicePropDesc:
+    case MTP_OP_GetDevicePropValue:
+    case MTP_OP_SetDevicePropValue:
+    case MTP_OP_ResetDevicePropValue:
+        return false;
+    default:
+        return true;
     }
 }
 

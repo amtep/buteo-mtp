@@ -69,6 +69,7 @@ public:
     ~FSStoragePlugin();
 
     bool enumerateStorage();
+    Q_SLOT void enumerateStorage_worker();
 
     MTPResponseCode addItem( ObjHandle &parentHandle, ObjHandle &handle, MTPObjectInfo *info );
 

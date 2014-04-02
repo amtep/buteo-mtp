@@ -97,6 +97,7 @@ class MTPResponder : public QObject
 
     public slots:
         void dispatchEvent(MTPEventCode event, const QVector<quint32> &params);
+        void onStorageReady();
 
     Q_SIGNALS:
         /// This signal is emitted by the mtpresponder to indicate that the responder is an OK state. 
@@ -146,6 +147,7 @@ class MTPResponder : public QObject
         static MTPResponder*                            m_instance;         ///< Instance pointer
         QHash<MTPOperationCode, MTPCommandHandler>      m_opCodeTable;      ///< Hash table storing command handler functions
         StorageFactory*                                 m_storageServer;    ///< Pointer to the object storage server
+        bool                                            m_storageReady;     ///< storageReady signal has been received
         MTPTransporter*                                 m_transporter;      ///< Pointer to the transport layer
         DeviceInfo*                                     m_devInfoProvider;  ///< Pointer to the device info class
         PropertyPod*                                    m_propertyPod;      ///< Pointer to the MTP properties utility class
@@ -162,7 +164,7 @@ class MTPResponder : public QObject
             RESPONDER_WAIT_DATA = 1,                                        ///< Responder has received a request, and is now waiting for the data phase
             RESPONDER_WAIT_RESP = 2,                                        ///< Responder is waiting for the response phase
             RESPONDER_TX_CANCEL = 3,                                        ///< A transaction got cancelled
-            RESPONDER_SUSPEND = 4                                           ///< A suspended session
+            RESPONDER_SUSPEND = 4,                                           ///< A suspended session
         }m_state;                                                           ///< Responder state
 
         ResponderState                                  m_prevState;
@@ -429,6 +431,9 @@ class MTPResponder : public QObject
 
         /// Returns true if the operation has an I->R data phase
         bool hasDataPhase(MTPOperationCode code);
+
+        /// Returns true if the operation needs to access m_storageServer
+        bool needsStorageReady(MTPOperationCode code);
 
 
 #if 0
